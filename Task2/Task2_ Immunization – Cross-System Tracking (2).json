@@ -1,0 +1,353 @@
+{
+  "name": "Task2: Immunization – Cross-System Tracking",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "immunization-recorded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c97d8ef1-c500-4738-a654-b0fbba2a835c",
+      "name": "immunization-recorded",
+      "webhookId": "7ce72fc4-070e-4243-85d3-7e42c4196390"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"childId\": \"{{ $json.body.childId }}\",\n \"vaccineCode\": \"{{ $json.body.vaccineCode }}\",\n \"doseNumber\": \"{{ $json.body.doseNumber }}\",\n \"administeredOn\": \"{{ $json.body.administeredOn }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "409ac9f1-4e7c-49c5-a2aa-555a430b5a80",
+      "name": "Sync Immunization to PHP"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"taskType\": \"IMMUNIZATION_OUTREACH\",\n \"assignedRole\": \"CHW\",\n \"program\": \"IMMUNIZATION\",\n\n \"childId\": \"{{ $json.childId }}\",\n \"vaccineCode\": \"{{ $json.nextVaccineCode }}\",\n \"doseNumber\": \"{{ $json.nextDoseNumber }}\",\n \"dueAfterDays\": \"{{ $json.dueAfterDays }}\",\n\n \"priority\": \"NORMAL\",\n \"sourceEvent\": \"immunization-recorded\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "793f177e-21f6-4a9f-a5c2-27864ad16bf8",
+      "name": "Create CHW Immunization Outreach Task"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "immunization-visit-completed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        368
+      ],
+      "id": "ed3afe2d-0edf-47c5-976c-be0995bc7d9c",
+      "name": "immunization-visit-completed",
+      "webhookId": "2e12f541-f239-441c-b6a5-89a768c751ff"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"childId\": \"{{ $json.body.childId }}\",\n \"lastVaccine\": \"{{ $json.body.vaccineCode }}\",\n \"lastDoseNumber\": \"{{ $json.body.doseNumber }}\",\n \"nextVaccineCode\": \"PENTA\",\n \"nextDoseNumber\": \"1\",\n \"dueAfterDays\": \"42\",\n \"program\": \"IMMUNIZATION\",\n \"source\": \"facility-emr\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        368
+      ],
+      "id": "1782a02f-a7af-4bbc-a0fa-5dc5ec49d9a9",
+      "name": "Update Immunization Status"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.parse($json.data) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        368,
+        0
+      ],
+      "id": "495dabd3-fa1e-4117-8c6d-6389cc9ebc7b",
+      "name": "Normalize Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://httpbin.org/anything\n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"childId\": \"{{ $json.childId }}\",\n  \"dob\": \"2025-11-10\",\n  \"immunizations\": [\n    {\n      \"code\": \"BCG\",\n      \"date\": \"2025-12-30\"\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        368,
+        192
+      ],
+      "id": "45e7d88b-cb57-41c2-bbb2-92425d26c126",
+      "name": "Fetch Child Profile"
+    },
+    {
+      "parameters": {
+        "jsCode": "const merged = $json;\n\n// Event part\nconst event = {\n  vaccineCode: merged.vaccineCode,\n  doseNumber: merged.doseNumber,\n  administeredOn: merged.administeredOn,\n};\n\n// Profile part (httpbin echo)\nconst profile = merged.json;\n\nreturn [{\n  json: {\n    childId: profile.childId,\n    dob: profile.dob,\n    vaccinesTaken: profile.immunizations,\n    lastEvent: event,\n    program: \"ROUTINE_IMMUNIZATION\",\n    tenantId: \"dj\"\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "c12fa8b3-8c39-4e34-865b-e38bc1230b2c",
+      "name": "Build Vaccine History"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": false
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        624,
+        16
+      ],
+      "id": "d7d23f88-74b3-4848-b3b2-0289fbc285f0",
+      "name": "Merge",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/anything",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"tenantId\": \"{{ $json.tenantId }}\",\n  \"program\": \"{{ $json.program }}\",\n  \"schedule\": [\n    {\n      \"code\": \"BCG\",\n      \"minAgeDays\": 0,\n      \"maxAgeDays\": 365,\n      \"sequence\": 1\n    },\n    {\n      \"code\": \"OPV0\",\n      \"minAgeDays\": 0,\n      \"maxAgeDays\": 14,\n      \"sequence\": 2\n    },\n    {\n      \"code\": \"PENTA1\",\n      \"minAgeDays\": 42,\n      \"maxAgeDays\": 90,\n      \"sequence\": 3\n    },\n    {\n      \"code\": \"MEASLES1\",\n      \"minAgeDays\": 270,\n      \"maxAgeDays\": 365,\n      \"sequence\": 6\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        832,
+        208
+      ],
+      "id": "06b6a94c-1128-4cae-b9e2-7d2d90d8965f",
+      "name": "Fetch Vaccine Schedule (MDMS)"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "a04be885-3367-42f5-9ded-df61eb93eae2",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ctx = $json;\n\n// Child context\nconst dob = new Date(ctx.dob);\nconst vaccinesTaken = ctx.vaccinesTaken.map(v => v.code);\n\n// Schedule config from MDMS (httpbin echo)\nconst schedule = ctx.json.schedule;\n\n// 1️⃣ Calculate child age in days\nconst today = new Date();\nconst ageInDays = Math.floor((today - dob) / (1000 * 60 * 60 * 24));\n\n// 2️⃣ Remove already taken vaccines\nconst remaining = schedule.filter(v =>\n  !vaccinesTaken.includes(v.code)\n);\n\n// 3️⃣ Filter by age eligibility\nconst eligible = remaining.filter(v =>\n  ageInDays >= v.minAgeDays && ageInDays <= v.maxAgeDays\n);\n\n// 4️⃣ Sort by sequence\neligible.sort((a, b) => a.sequence - b.sequence);\n\n// 5️⃣ Pick next vaccine\nconst next = eligible[0];\n\nif (!next) {\n  return [{\n    json: {\n      childId: ctx.childId,\n      status: \"NO_VACCINE_DUE\"\n    }\n  }];\n}\n\n// 6️⃣ Compute due date + status\nconst dueDate = new Date(dob);\ndueDate.setDate(dueDate.getDate() + next.minAgeDays);\n\nlet status = \"DUE\";\nif (today > dueDate) {\n  status = \"OVERDUE\";\n}\n\nreturn [{\n  json: {\n    childId: ctx.childId,\n    nextVaccine: next.code,\n    dueDate: dueDate.toISOString().split(\"T\")[0],\n    status: status,\n    priority: status === \"OVERDUE\" ? \"HIGH\" : \"NORMAL\"\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "ce720af7-8b89-4d02-afdb-e26e5f6d670f",
+      "name": "Determine Next Vaccine (Config)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "immunization-recorded": {
+      "main": [
+        [
+          {
+            "node": "Sync Immunization to PHP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Immunization to PHP": {
+      "main": [
+        [
+          {
+            "node": "Normalize Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "immunization-visit-completed": {
+      "main": [
+        [
+          {
+            "node": "Update Immunization Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Child Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Child Profile": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Build Vaccine History": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Vaccine Schedule (MDMS)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Build Vaccine History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Determine Next Vaccine (Config)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Vaccine Schedule (MDMS)": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Determine Next Vaccine (Config)": {
+      "main": [
+        [
+          {
+            "node": "Create CHW Immunization Outreach Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "0db91512-7fcf-4670-a753-72950c21cb40",
+  "meta": {
+    "instanceId": "785e12af35e65bfdff8a2eafbc22ff7ce0b68c73d1a6dac5dec8ee2858f70da5"
+  },
+  "id": "MYrQWxRMMiCg783l8mfYm",
+  "tags": []
+}
