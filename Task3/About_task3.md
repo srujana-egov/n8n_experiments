@@ -1,6 +1,6 @@
 # Task 3 — Chronic Disease: Hypertension Follow-Up Workflow
 
-Note: Import the [task 3 json file](https://github.com/srujana-egov/n8n_experiments/blob/main/Task3/Task3_%20Chronic%20Disease%20%E2%80%93%20Hypertension%20Follow-Up%20(2).json) in n8n to run the workflow and to see the node logic. Postman collection is also given in [task 3 postman collection](https://github.com/srujana-egov/n8n_experiments/blob/main/Task2/n8n%20-%20task2.postman_collection.json).
+Note: Import the [task 3 json file](https://github.com/srujana-egov/n8n_experiments/blob/main/Task3/Task3_%20Chronic%20Disease%20%E2%80%93%20Hypertension%20Follow-Up%20(2).json) in n8n to run the workflow and to see the node logic. Postman collection is also given in [task 3 postman collection](https://github.com/srujana-egov/n8n_experiments/blob/main/Task3/n8n%20-%20task3.postman_collection.json).
 
 <img width="785" height="352" alt="Screenshot 2026-01-20 at 5 51 35 PM" src="https://github.com/user-attachments/assets/29ea8879-cfeb-4568-acbf-be60e6fd3dff" />
 
