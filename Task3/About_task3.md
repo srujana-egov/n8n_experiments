@@ -1,5 +1,9 @@
 # Task 3 — Chronic Disease: Hypertension Follow-Up Workflow
 
+Note: Import the [task 3 json file](https://github.com/srujana-egov/n8n_experiments/blob/main/Task2/Task2_%20Immunization%20%E2%80%93%20Cross-System%20Tracking%20(2).json) in n8n to run the workflow and to see the node logic. Postman collection is also given in [task 3 postman collection](https://github.com/srujana-egov/n8n_experiments/blob/main/Task2/n8n%20-%20task2.postman_collection.json).
+
+<img width="785" height="352" alt="Screenshot 2026-01-20 at 5 51 35 PM" src="https://github.com/user-attachments/assets/29ea8879-cfeb-4568-acbf-be60e6fd3dff" />
+
 This implementation uses **two workflows**:
 
 ### 1) Diagnosis → Recurring Task Creation (Primary Workflow)
@@ -83,8 +87,8 @@ This makes the workflow reusable across programs and geographies.
 
 ## Alignment With Experiment Goals
 
-✔ Event-driven orchestration
-✔ External app participation via webhooks
-✔ Config-based recurrence handling
-✔ Portable, machine-readable workflow design
-✔ Clear separation of logic and execution
+1. Event-driven orchestration
+2. External app participation via webhooks
+3. Config-based recurrence handling
+4. Portable, machine-readable workflow design
+5. Clear separation of logic and execution
