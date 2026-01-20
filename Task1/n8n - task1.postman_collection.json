@@ -1,0 +1,113 @@
+{
+	"info": {
+		"_postman_id": "a055b5e3-511c-4d66-b063-6826db659272",
+		"name": "n8n - task1",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37473208"
+	},
+	"item": [
+		{
+			"name": "pregnancy-registered",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"event\": \"pregnancy-registered\",\n    \"patientId\": \"patient-123\",\n    \"pregnancyId\": \"preg-456\",\n    \"bloodSugar\": 168,\n    \"gestationalAgeWeeks\": 14\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "<YOUR_TEST_WEBHOOK_URL>",
+					"host": [
+						"<YOUR_TEST_WEBHOOK_URL>"
+					]
+				},
+				"description": "Generated from cURL: curl -X POST <YOUR_TEST_WEBHOOK_URL> \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"event\": \"pregnancy-registered\",\n    \"patientId\": \"patient-123\",\n    \"pregnancyId\": \"preg-456\",\n    \"bloodSugar\": 168,\n    \"gestationalAgeWeeks\": 14\n  }'\n"
+			},
+			"response": []
+		},
+		{
+			"name": "diabetes-screening-completed",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"event\": \"diabetes-screening-completed\",\n    \"patientId\": \"patient-123\",\n    \"pregnancyId\": \"preg-456\",\n    \"bloodSugar\": 168,\n    \"measuredOn\": \"2025-12-29\",\n    \"source\": \"NCD_CHW_APP\"\n  }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://egov-digit.app.n8n.cloud/webhook-test/10a32744-36f2-4e04-aa9b-11ded874683b",
+					"protocol": "https",
+					"host": [
+						"egov-digit",
+						"app",
+						"n8n",
+						"cloud"
+					],
+					"path": [
+						"webhook-test",
+						"10a32744-36f2-4e04-aa9b-11ded874683b"
+					]
+				},
+				"description": "Generated from cURL: curl -X POST \\\n  https://egov-digit.app.n8n.cloud/webhook-test/10a32744-36f2-4e04-aa9b-11ded874683b \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"event\": \"diabetes-screening-completed\",\n    \"patientId\": \"patient-123\",\n    \"pregnancyId\": \"preg-456\",\n    \"bloodSugar\": 168,\n    \"measuredOn\": \"2025-12-29\",\n    \"source\": \"NCD_CHW_APP\"\n  }'\n"
+			},
+			"response": []
+		},
+		{
+			"name": "doctor-followup-plan-updated",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"patientId\": \"patient-123\",\n  \"pregnancyId\": \"preg-456\",\n\n  \"caseType\": \"HIGH_RISK_PREGNANCY\",\n  \"riskLevel\": \"HIGH\",\n\n  \"followupPlan\": {\n    \"visitType\": \"HOME_VISIT\",\n    \"frequency\": \"WEEKLY\",\n    \"interval\": 1,\n    \"durationWeeks\": 12,\n    \"startDate\": \"2026-02-01\"\n  },\n\n  \"doctorId\": \"doc-901\",\n  \"facilityId\": \"fac-22\",\n  \"tenantId\": \"dj\",\n  \"program\": \"MATERNAL\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://digital-health.app.n8n.cloud/webhook-test/b3a0ece1-32a3-45c7-9465-2957011d14a6",
+					"protocol": "https",
+					"host": [
+						"digital-health",
+						"app",
+						"n8n",
+						"cloud"
+					],
+					"path": [
+						"webhook-test",
+						"b3a0ece1-32a3-45c7-9465-2957011d14a6"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
