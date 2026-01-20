@@ -7,6 +7,23 @@ Note: Import the [task 2 json file](https://github.com/srujana-egov/n8n_experime
 The solution is split into **one main orchestration workflow** and **two event sub-workflows** to separate scheduling logic from execution handling.
 
 ---
+## Why MDMS Is Used
+
+Vaccination rules are policy-driven and change frequently. Using MDMS:
+
+* Avoids hardcoding logic
+* Supports multi-tenant configuration
+* Enables dynamic schedule updates
+
+---
+## Design Benefits
+
+* Event-driven workflow orchestration
+* Config-based vaccination logic
+* Clear separation of planning vs execution
+* DIGIT-aligned scalable architecture
+
+---
 
 ## Main Workflow: Immunization Orchestrator
 
@@ -104,21 +121,4 @@ When CHW completes outreach:
 * Marks task as completed
 * Keeps registry and reporting systems in sync
 
----
 
-## Why MDMS Is Used
-
-Vaccination rules are policy-driven and change frequently. Using MDMS:
-
-* Avoids hardcoding logic
-* Supports multi-tenant configuration
-* Enables dynamic schedule updates
-
----
-
-## Design Benefits
-
-* Event-driven workflow orchestration
-* Config-based vaccination logic
-* Clear separation of planning vs execution
-* DIGIT-aligned scalable architecture
