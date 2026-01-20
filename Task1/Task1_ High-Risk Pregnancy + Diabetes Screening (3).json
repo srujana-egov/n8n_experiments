@@ -1,0 +1,417 @@
+{
+  "name": "Task1: High-Risk Pregnancy + Diabetes Screening",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "809c5d7c-b785-4130-b2e2-575e9a12ae92",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2016,
+        176
+      ],
+      "id": "e89f479e-131e-4d49-9ed6-93325d627e47",
+      "name": "pregnancy-registered",
+      "webhookId": "809c5d7c-b785-4130-b2e2-575e9a12ae92"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"taskType\": \"CHW_DIABETES_SCREENING\",\n \"patientId\": \"{{ $json.body.patientId }}\",\n \"pregnancyId\": \"{{ $json.body.pregnancyId }}\",\n \"assignedRole\": \"CHW\",\n \"priority\": \"NORMAL\",\n \"sourceEvent\": \"pregnancy-registered\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1808,
+        176
+      ],
+      "id": "a6ac067e-56c6-4aed-9906-1d8ad30d2955",
+      "name": "Create CHW Screening Task"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"taskType\": \"DOCTOR_REFERRAL\",\n \"patientId\": \"{{ $json.body.patientId }}\",\n \"pregnancyId\": \"{{ $json.body.pregnancyId }}\",\n \"assignedRole\": \"DOCTOR\",\n \"priority\": \"HIGH\",\n \"reason\": \"HIGH_BLOOD_SUGAR\",\n \"sourceEvent\": \"diabetes-screening-completed\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1440,
+        400
+      ],
+      "id": "a3bc8ac4-13cf-4ae1-83cd-03c76aa7edc9",
+      "name": "Create Doctor Referral Task"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"recipientId\": \"{{ $json.body.patientId }}\",\n \"channel\": \"SMS\",\n \"template\": \"HIGH_RISK_PREGNANCY_ALERT\",\n \"context\": {\n \"pregnancyId\": \"{{ $json.body.pregnancyId }}\"\n },\n \"sourceEvent\": \"diabetes-screening-completed\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1248,
+        400
+      ],
+      "id": "6c1693ba-5205-4f64-80f2-500e9e83167f",
+      "name": "Notify Patient"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ca6b08c1-6fa0-4721-98bb-3ad34d0a9927",
+              "leftValue": "={{ $json.body.bloodSugar }}",
+              "rightValue": 140,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1840,
+        416
+      ],
+      "id": "cf7d7743-2167-48df-a00b-aed40a136b56",
+      "name": "Is bloodSugar >= threshold?"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "10a32744-36f2-4e04-aa9b-11ded874683b",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2016,
+        416
+      ],
+      "id": "f4976c4e-d806-46ff-b8f4-7f69343be063",
+      "name": "diabetes-screening-completed",
+      "webhookId": "10a32744-36f2-4e04-aa9b-11ded874683b"
+    },
+    {
+      "parameters": {
+        "content": "## Pregnancy Handler\nPurpose: Create screening\n",
+        "height": 80,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2448,
+        192
+      ],
+      "typeVersion": 1,
+      "id": "91b13e49-0ff2-4ec4-911a-1bc679d04848",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Screening Evaluator\nPurpose: referral + notify",
+        "height": 112,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2448,
+        432
+      ],
+      "typeVersion": 1,
+      "id": "b55cb9a6-2c9b-44ab-9b7b-e52609824c7c",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Care Plan Execution Workflow\nPurpose: ",
+        "height": 112,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2448,
+        688
+      ],
+      "typeVersion": 1,
+      "id": "60a54fc6-faf0-4a59-83d9-55721b49d0d5",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "b3a0ece1-32a3-45c7-9465-2957011d14a6",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2016,
+        688
+      ],
+      "id": "3e0fddcd-d6a8-4f00-b2fc-61013741f07e",
+      "name": "doctor-followup-plan-updated",
+      "webhookId": "b3a0ece1-32a3-45c7-9465-2957011d14a6"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"patientId\": \"{{ $json.patientId }}\",\n  \"taskType\": \"{{ $json.taskType }}\",\n  \"priority\": \"{{ $json.priority }}\",\n  \"slaDays\": {{ $json.slaDays }},\n\n  \"schedule\": {\n    \"frequency\": \"{{ $json.frequency }}\",\n    \"interval\": {{ $json.interval }},\n    \"startDate\": \"{{ $json.startDate }}\",\n    \"maxOccurrences\": {{ $json.maxOccurrences }}\n  },\n\n  \"program\": \"{{ $json.program }}\",\n  \"tenantId\": \"{{ $json.tenantId }}\",\n  \"facilityId\": \"{{ $json.facilityId }}\",\n  \"source\": \"{{ $json.source }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1200,
+        688
+      ],
+      "id": "779382dd-81c1-4d6b-a024-c8a3be9058b3",
+      "name": "Create Recurring CHW Task (UTM)"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"patientId\": \"{{ $json.body.patientId }}\",\n  \"pregnancyId\": \"{{ $json.body.pregnancyId }}\",\n\n  \"caseType\": \"{{ $json.body.caseType }}\",\n  \"riskLevel\": \"{{ $json.body.riskLevel }}\",\n\n  \"taskType\": \"MATERNAL_FOLLOWUP\",\n\n  \"frequency\": \"{{ $json.body.followupPlan.frequency }}\",\n  \"interval\": {{ Number($json.body.followupPlan.interval) }},\n  \"durationWeeks\": {{ Number($json.body.followupPlan.durationWeeks) }},\n  \"startDate\": \"{{ $json.body.followupPlan.startDate }}\",\n\n  \"doctorId\": \"{{ $json.body.doctorId }}\",\n  \"facilityId\": \"{{ $json.body.facilityId }}\",\n\n  \"tenantId\": \"{{ $json.body.tenantId }}\",\n  \"program\": \"{{ $json.body.program }}\",\n\n  \"priority\": \"{{ $json.body.riskLevel === 'HIGH' ? 'HIGH' : 'NORMAL' }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1856,
+        688
+      ],
+      "id": "0163b50d-e324-411e-a36b-0d6104b8c7f3",
+      "name": "Normalize Fields "
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1616,
+        688
+      ],
+      "id": "fdb89020-a98a-422e-961e-5f3da78fc3a9",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\n// Core fields\nconst patientId = input.patientId;\nconst pregnancyId = input.pregnancyId;\nconst taskType = input.taskType;\nconst riskLevel = input.riskLevel;\n\n// Doctor plan schedule\nconst frequency = input.frequency;\nconst interval = Number(input.interval);\nconst durationWeeks = Number(input.durationWeeks);\nconst startDate = input.startDate;\n\n// Load MDMS config\nconst config = input.recurrenceConfig[taskType];\n\n// Safety check\nif (!config) {\n  throw new Error(`No recurrence config found for ${taskType}`);\n}\n\n// Pick base plan\nlet slaDays = config.default.slaDays;\n\n// Apply high risk override\nif (\n  config.highRisk &&\n  riskLevel === config.highRisk.riskLevel\n) {\n  slaDays = config.highRisk.slaDays;\n}\n\n// Validate allowed frequency\nif (!config.default.allowedFrequencies.includes(frequency)) {\n  throw new Error(`Frequency ${frequency} not allowed`);\n}\n\n// Cap duration\nconst maxAllowed = config.default.maxDurationWeeks;\nconst finalDuration = Math.min(durationWeeks, maxAllowed);\n\n// Compute occurrences\nconst maxOccurrences = Math.floor(finalDuration / interval);\n\n// Output to UTM\nreturn [\n  {\n    json: {\n      patientId,\n      pregnancyId,\n      taskType,\n      frequency,\n      interval,\n      startDate,\n      maxOccurrences,\n      slaDays,\n      priority: input.priority,\n      program: input.program,\n      tenantId: input.tenantId,\n      facilityId: input.facilityId,\n      source: \"DOCTOR_PLAN\"\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1408,
+        688
+      ],
+      "id": "b1805065-26af-4a5e-a774-232e3b037cb5",
+      "name": "Determine Recurrence "
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"recurrenceConfig\": {\n    \"MATERNAL_FOLLOWUP\": {\n      \"default\": {\n        \"maxDurationWeeks\": 52,\n        \"allowedFrequencies\": [\"WEEKLY\", \"BIWEEKLY\"],\n        \"slaDays\": 2\n      },\n      \"highRisk\": {\n        \"riskLevel\": \"HIGH\",\n        \"slaDays\": 1\n      }\n    }\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1856,
+        848
+      ],
+      "id": "f342287b-3dbe-48c2-ada5-eebf88576327",
+      "name": "Fetch Recurrence Policy (MDMS)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "pregnancy-registered": {
+      "main": [
+        [
+          {
+            "node": "Create CHW Screening Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Doctor Referral Task": {
+      "main": [
+        [
+          {
+            "node": "Notify Patient",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is bloodSugar >= threshold?": {
+      "main": [
+        [
+          {
+            "node": "Create Doctor Referral Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "diabetes-screening-completed": {
+      "main": [
+        [
+          {
+            "node": "Is bloodSugar >= threshold?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Fields ": {
+      "main": [
+        [
+          {
+            "node": "Fetch Recurrence Policy (MDMS)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Determine Recurrence ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Recurrence ": {
+      "main": [
+        [
+          {
+            "node": "Create Recurring CHW Task (UTM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "doctor-followup-plan-updated": {
+      "main": [
+        [
+          {
+            "node": "Normalize Fields ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Recurrence Policy (MDMS)": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "e1b3d882-7071-482f-9178-2039f20b71f9",
+  "meta": {
+    "instanceId": "785e12af35e65bfdff8a2eafbc22ff7ce0b68c73d1a6dac5dec8ee2858f70da5"
+  },
+  "id": "OM2wZ-uS1U6PjzezB37TL",
+  "tags": []
+}
