@@ -1,0 +1,274 @@
+{
+  "name": "Task3: Chronic Disease – Hypertension Follow-Up",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "hypertension-diagnosed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "34581723-b137-4e28-9020-0b59e42daacb",
+      "name": "hypertension-diagnosed",
+      "webhookId": "052d35ad-e3eb-47c1-b96a-6a454f857b69"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"patientId\": \"{{ $json.body.patientId }}\",\n  \"condition\": \"{{ $json.body.condition }}\",\n  \"systolic\": \"{{ $json.body.systolic }}\",\n  \"diastolic\": \"{{ $json.body.diastolic }}\",\n  \"diagnosisDate\": \"{{ $json.body.diagnosisDate }}\",\n  \"tenantId\": \"{{ $json.body.tenantId }}\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        224,
+        0
+      ],
+      "id": "03da6b3b-e529-4944-9195-e9ee129caf00",
+      "name": "Sync Diagnosis to PHP"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"patientId\": \"{{ $json.patientId }}\",\n  \"taskType\": \"{{ $json.taskType }}\",\n  \"priority\": \"{{ $json.priority }}\",\n  \"slaDays\": {{ $json.slaDays }},\n  \"schedule\": {\n    \"frequency\": \"{{ $json.frequency }}\",\n    \"interval\": {{ $json.interval }},\n    \"startDate\": \"{{ $json.startDate }}\",\n    \"maxOccurrences\": {{ $json.maxOccurrences }}\n  },\n  \"program\": \"NCD\",\n  \"source\": \"WORKFLOW\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1072,
+        0
+      ],
+      "id": "5afd0acb-7e2d-4fb9-84f5-df22185910d2",
+      "name": "Create Recurring CHW Task (UTM)"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "bp-reading-recorded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -16,
+        400
+      ],
+      "id": "b484e4d0-7551-4122-b23f-3f71facb31e9",
+      "name": "bp-reading-recorded",
+      "webhookId": "6203e9a9-a56e-407f-bf8c-65f776c2a5b7"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://httpbin.org/post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n \"patientId\": \"{{ $json.body.patientId }}\",\n \"bp\": {\n \"systolic\": \"{{ $json.body.systolic }}\",\n \"diastolic\": \"{{ $json.body.diastolic }}\"\n },\n \"recordedOn\": \"{{ $json.body.recordedOn }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        192,
+        400
+      ],
+      "id": "b91457fc-9b5e-40b1-a07b-5abda66e0171",
+      "name": "Update PHP with BP Reading"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ JSON.parse($json.data) }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "2af4cf20-2f98-46c9-bad4-6e19880a3285",
+      "name": "Normalize Fields "
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"recurrenceConfig\": {\n    \"HYPERTENSION\": {\n      \"default\": {\n        \"frequency\": \"MONTHLY\",\n        \"interval\": 1,\n        \"durationMonths\": 12,\n        \"slaDays\": 3\n      },\n      \"highRisk\": {\n        \"minSystolic\": 160,\n        \"frequency\": \"WEEKLY\",\n        \"interval\": 1,\n        \"durationMonths\": 3,\n        \"slaDays\": 1\n      }\n    }\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        160
+      ],
+      "id": "994a0eb2-bdbb-4324-9ea9-59fc8757d502",
+      "name": "Fetch Recurrence Policy (MDMS)1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        656,
+        0
+      ],
+      "id": "7d32aa07-c0c3-4ba2-9085-fca8a8fff126",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\n// Read input\nconst patientId = input.patientId;\nconst condition = input.condition;\nconst systolic = Number(input.systolic);\nconst diagnosisDate = new Date(input.diagnosisDate);\n\n// Load config\nconst config = input.recurrenceConfig[condition];\n\n// Pick default plan\nlet plan = config.default;\nlet priority = \"NORMAL\";\n\n// Risk override\nif (config.highRisk && systolic >= config.highRisk.minSystolic) {\n  plan = config.highRisk;\n  priority = \"CRITICAL\";\n}\n\n// Compute start date\nconst startDate = new Date(diagnosisDate);\n\nif (plan.frequency === \"WEEKLY\") {\n  startDate.setDate(startDate.getDate() + (7 * plan.interval));\n}\n\nif (plan.frequency === \"MONTHLY\") {\n  startDate.setMonth(startDate.getMonth() + plan.interval);\n}\n\n// Compute occurrences\nlet maxOccurrences;\n\nif (plan.frequency === \"WEEKLY\") {\n  maxOccurrences = plan.durationMonths * 4;\n}\n\nif (plan.frequency === \"MONTHLY\") {\n  maxOccurrences = plan.durationMonths;\n}\n\n// Output recurrence rule\nreturn [\n  {\n    json: {\n      patientId: patientId,\n      taskType: \"BP_FOLLOWUP\",\n      frequency: plan.frequency,\n      interval: plan.interval,\n      startDate: startDate.toISOString().split(\"T\")[0],\n      maxOccurrences: maxOccurrences,\n      slaDays: plan.slaDays,\n      priority: priority\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        0
+      ],
+      "id": "48c307b9-9912-464b-bf9d-62dbfda09588",
+      "name": "Determine Recurrence "
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "hypertension-diagnosed": {
+      "main": [
+        [
+          {
+            "node": "Sync Diagnosis to PHP",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sync Diagnosis to PHP": {
+      "main": [
+        [
+          {
+            "node": "Normalize Fields ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "bp-reading-recorded": {
+      "main": [
+        [
+          {
+            "node": "Update PHP with BP Reading",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Fields ": {
+      "main": [
+        [
+          {
+            "node": "Fetch Recurrence Policy (MDMS)1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Recurrence Policy (MDMS)1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Determine Recurrence ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determine Recurrence ": {
+      "main": [
+        [
+          {
+            "node": "Create Recurring CHW Task (UTM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "b4998af7-1def-41b2-812d-b8aa1502d2ec",
+  "meta": {
+    "instanceId": "785e12af35e65bfdff8a2eafbc22ff7ce0b68c73d1a6dac5dec8ee2858f70da5"
+  },
+  "id": "dXtMoCJsjsZSotcIjdArr",
+  "tags": []
+}
