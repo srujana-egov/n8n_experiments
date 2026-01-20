@@ -1,70 +1,124 @@
 # Task 2: Immunization Follow-up Workflow
 
-## Goal
+Note: Import the [task 2 json file](https://github.com/srujana-egov/n8n_experiments/blob/main/Task1/Task1_%20High-Risk%20Pregnancy%20%2B%20Diabetes%20Screening%20(3).json) in n8n to run the workflow and to see the node logic. Postman collection is also given in [task 2 postman collection](https://github.com/srujana-egov/n8n_experiments/blob/main/Task1/n8n%20-%20task1.postman_collection.json).
 
-Automatically identify the **next due vaccination** after an immunization is recorded and create a **CHW outreach task** using configuration from MDMS.
+<img width="1063" height="354" alt="Screenshot 2026-01-20 at 5 38 45 PM" src="https://github.com/user-attachments/assets/584add9a-76d6-445c-a104-9589f29ad4fb" />
 
----
-
-## Trigger
-
-**Event:** `immunization-recorded`  
-Fired when a vaccine dose is saved in PHP.
-
-Contains:
-- Child ID  
-- Vaccine code  
-- Dose number  
-- Date administered  
-- Tenant / program info  
+The solution is split into **one main orchestration workflow** and **two event sub-workflows** to separate scheduling logic from execution handling.
 
 ---
 
-## Workflow Flow
+## Main Workflow: Immunization Orchestrator
 
-1. Receive immunization event  
-2. Normalize incoming data  
-3. Fetch child profile  
-4. Build vaccination history  
-5. Load vaccine schedule from MDMS  
-6. Determine next due vaccine  
-7. Create CHW outreach task  
+### Trigger: `immunization-recorded`
 
-Each step is isolated to keep the workflow readable and easy to debug.
+Triggered when a new vaccine dose is recorded in PHP.
 
 ---
 
-## MDMS Usage
+### Processing Steps
 
-MDMS provides the **official vaccine schedule**, including:
+#### 1. Sync Immunization to PHP
 
-- Vaccine sequence  
-- Dose order  
-- Due offsets (days after birth)  
+Persists the immunization update so EMR, dashboards, and downstream services remain consistent.
 
-Example (conceptual):
+---
 
-```json
-BCG → Due at birth  
-OPV Dose 1 → Due after 42 days  
-OPV Dose 2 → Due after 70 days
-```
-This avoids hardcoding medical rules inside the workflow.
+#### 2. Normalize Fields
 
-## How Next Vaccine Is Determined
-The workflow:
+Converts incoming payloads into a standard structure for workflow processing.
 
-Reads child DOB -> Reads completed vaccines -> Compares against MDMS schedule -> Finds the first missing dose -> Calculates its due date
+---
 
-If the vaccine is due → outreach task is created.
-If not due → workflow exits.
+#### 3. Fetch Child Profile
 
+Loads child master data (DOB, program, identifiers) required for scheduling.
 
-## Why This Design
-1. Stateless: No workflow state stored in n8n
-2. Config-driven: Schedule changes only require MDMS updates
-3. Scalable: Same logic works across programs and regions
+---
 
-## Result
-This workflow ensures children automatically receive follow-up vaccination outreach based on real-time data and centralized configuration.
+#### 4. Build Vaccine History
 
+Aggregates all completed doses for the child.
+This produces a clean vaccine history list used to avoid duplicate scheduling.
+
+---
+
+#### 5. Fetch Vaccine Schedule (MDMS)
+
+Loads vaccination policy from mock MDMS, including:
+
+* Vaccine order
+* Minimum age or gap rules
+* Due windows
+* Program mappings
+
+This removes hardcoded scheduling logic from the workflow.
+
+---
+
+#### 6. Determine Next Vaccine (Core Logic)
+
+This node computes the next due vaccine using configuration and history:
+
+Logic applied:
+
+* Compare **completed vaccines** with **MDMS schedule**
+* Identify the **first pending vaccine** in the schedule sequence
+* Calculate **due date** using:
+
+  * Child DOB
+  * Last vaccination date
+  * Minimum interval rules from MDMS
+* Validate eligibility (age window / interval)
+* Output scheduling parameters:
+
+  * Vaccine name
+  * Due date
+  * Priority
+  * SLA window
+
+Only valid, due vaccines are forwarded for task creation.
+
+---
+
+#### 7. Create CHW Outreach Task (UTM)
+
+Creates a task for the Community Health Worker with:
+
+* Vaccine name
+* Due date
+* Priority
+* Program and tenant context
+
+This task drives field execution.
+
+---
+
+## Sub Workflow 1: Visit Completion Handler
+
+### Trigger: `immunization-visit-completed`
+
+When CHW completes outreach:
+
+* Updates immunization status in PHP
+* Marks task as completed
+* Keeps registry and reporting systems in sync
+
+---
+
+## Why MDMS Is Used
+
+Vaccination rules are policy-driven and change frequently. Using MDMS:
+
+* Avoids hardcoding logic
+* Supports multi-tenant configuration
+* Enables dynamic schedule updates
+
+---
+
+## Design Benefits
+
+* Event-driven workflow orchestration
+* Config-based vaccination logic
+* Clear separation of planning vs execution
+* DIGIT-aligned scalable architecture
